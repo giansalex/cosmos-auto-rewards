@@ -1,8 +1,6 @@
-## Cosmos Hub reinvestment script for rewards
+## Cosmos Hub automatic rewards and stake
 
-Courtesy of [Validator🌐Network](https://validator.network).
-
-The provided script enable delegators to claim all their staking rewards and reinvest them, to receive compounded interest. In addition to this, it supports withdrawal of validator commission.
+The provided script enable delegators to claim all their staking rewards and reinvest them, to receive compounded interest.
 
 There is no requirement to run a local full node as the script defaults to using the https://cosmoshub.validator.network:443 RPC endpoint.
 
@@ -11,7 +9,7 @@ There is no requirement to run a local full node as the script defaults to using
 
 First download the script and make it executable:
 ```
-curl -O https://raw.githubusercontent.com/block-finance/cosmoshub-scripts/master/cosmoshub-reinvest-rewards.sh
+curl -O https://raw.githubusercontent.com/giansalex/cosmoshub-auto-rewards/master/cosmoshub-reinvest-rewards.sh
 chmod +x cosmoshub-reinvest-rewards.sh
 ```
 
@@ -19,12 +17,12 @@ chmod +x cosmoshub-reinvest-rewards.sh
 
 The script has some default settings and only requires you to provide the name for the account you wish to work with.
 
-The name must match the output of the NAME: column of `gaiacli keys list`:  
-![keychain](https://validator.network/img/gaiacli01.png "gaiacli keys list output")
+The name must match the output of the NAME: column of `gaiad keys list`:  
+![keychain](https://validator.network/img/gaiacli01.png "gaiad keys list output")
 
 You can now run the script:
 ```
-./cosmoshub-reinvest-rewards.sh testkey1
+./cosmoshub-reinvest-rewards.sh testkey1 XxpasswordxX
 ```
 
 and expect output such as:
@@ -52,8 +50,8 @@ If you like, you can use your favorite text editor to change some of the default
 # User settings.
 ##############################################################################
 
-MINIMUM_DELEGATION_AMOUNT="25000000"
-RESERVATION_AMOUNT="100000000"
+MINIMUM_DELEGATION_AMOUNT="2000000"
+RESERVATION_AMOUNT="100000"
 VALIDATOR="cosmosvaloper1sxx9mszve0gaedz5ld7qdkjkfv8z992ax69k08"
 
 ##############################################################################
