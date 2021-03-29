@@ -12,12 +12,12 @@
 # User settings.
 ##############################################################################################################################################################
 
-KEY=""                                  # This is the key you wish to use for signing transactions, listed in first column of "gaiad keys list".
-PASSPHRASE=""                           # Only populate if you want to run the script periodically. This is UNSAFE and should only be done if you know what you are doing.
+KEY=${1}                                  # This is the key you wish to use for signing transactions, listed in first column of "gaiad keys list".
+PASSPHRASE=${2}                           # Only populate if you want to run the script periodically. This is UNSAFE and should only be done if you know what you are doing.
 DENOM="uatom"                           # Coin denominator is uatom ("microoatom"). 1 atom = 1000000 uatom.
 MINIMUM_DELEGATION_AMOUNT="2000000"    # Only perform delegations above this amount of uatom. Default: 2atom.
 RESERVATION_AMOUNT="100000"          # Keep this amount of uatom in account. Default: 0.1atom.
-VALIDATOR="cosmosvaloper1sxx9mszve0gaedz5ld7qdkjkfv8z992ax69k08"        # Default is Validator Network. Thank you for your patronage :-)
+VALIDATOR="cosmosvaloper1sxx9mszve0gaedz5ld7qdkjkfv8z992ax69k08"        # Default is Validator Network.
 
 ##############################################################################################################################################################
 
@@ -31,7 +31,7 @@ NODE="https://cosmoshub.validator.network:443"  # Either run a local full node o
 GAS_PRICES="0.025uatom"                         # Gas prices to pay for transaction.
 GAS_ADJUSTMENT="1.30"                           # Adjustment for estimated gas
 GAS_FLAGS="--gas auto --gas-prices ${GAS_PRICES} --gas-adjustment ${GAS_ADJUSTMENT}"
-
+GAIABIN=gaiad
 ##############################################################################################################################################################
 
 
@@ -42,12 +42,6 @@ then
   CHAIN_ID=$(echo ${NODE_STATUS} | jq -r ".result.node_info.network")
 fi
 
-# Use first command line argument in case KEY is not defined.
-if [ -z "${KEY}" ] && [ ! -z "${1}" ]
-then
-  KEY=${1}
-fi
-
 # Get information about key
 KEY_STATUS=$(echo ${PASSPHRASE} | gaiad keys show ${KEY} --output json)
 KEY_TYPE=$(echo ${KEY_STATUS} | jq -r ".type")
@@ -55,7 +49,7 @@ KEY_TYPE=$(echo ${KEY_STATUS} | jq -r ".type")
 
 # Get current account balance.
 ACCOUNT_ADDRESS=$(echo ${KEY_STATUS} | jq -r ".address")
-ACCOUNT_STATUS=$(gaiad q account ${ACCOUNT_ADDRESS} --node ${NODE} --output json)
+ACCOUNT_STATUS=$($GAIABIN q account ${ACCOUNT_ADDRESS} --node ${NODE} --output json)
 ACCOUNT_SEQUENCE=$(echo ${ACCOUNT_STATUS} | jq -r ".value.sequence")
 ACCOUNT_BALANCE=$(echo ${ACCOUNT_STATUS} | jq -r ".value.coins[] | select(.denom == \"${DENOM}\") | .amount" || true)
 if [ -z "${ACCOUNT_BALANCE}" ]
@@ -65,7 +59,7 @@ then
 fi
 
 # Get available rewards.
-REWARDS_STATUS=$(gaiad q distribution rewards ${ACCOUNT_ADDRESS} --node ${NODE} --output json)
+REWARDS_STATUS=$($GAIABIN q distribution rewards ${ACCOUNT_ADDRESS} ${VALIDATOR} --node ${NODE} --output json)
 if [ "${REWARDS_STATUS}" == "null" ]
 then
     # Empty response means zero balance.
@@ -109,7 +103,7 @@ then
 fi
 
 # Display delegation information.
-VALIDATOR_STATUS=$(gaiad q staking validator ${VALIDATOR} --node ${NODE} --output json)
+VALIDATOR_STATUS=$($GAIABIN q staking validator ${VALIDATOR} --node ${NODE} --output json)
 VALIDATOR_MONIKER=$(echo ${VALIDATOR_STATUS} | jq -r ".description.moniker")
 VALIDATOR_DETAILS=$(echo ${VALIDATOR_STATUS} | jq -r ".description.details")
 echo "You are about to delegate ${DELEGATION_AMOUNT}${DENOM} to ${VALIDATOR}:"
@@ -121,12 +115,12 @@ echo
 if [ "${REWARDS_BALANCE}" -gt 0 ]
 then
     printf "Withdrawing rewards... "
-    echo ${PASSPHRASE} | gaiad tx distribution withdraw-rewards ${VALIDATOR} --yes --from ${KEY} --sequence ${ACCOUNT_SEQUENCE} --chain-id ${CHAIN_ID} --node ${NODE} ${GAS_FLAGS} --broadcast-mode async
+    echo ${PASSPHRASE} | $GAIABIN tx distribution withdraw-rewards ${VALIDATOR} --yes --from ${KEY} --sequence ${ACCOUNT_SEQUENCE} --chain-id ${CHAIN_ID} --node ${NODE} ${GAS_FLAGS} --broadcast-mode async
     ACCOUNT_SEQUENCE=$((ACCOUNT_SEQUENCE + 1))
 fi
 
 printf "Delegating... "
-echo ${PASSPHRASE} | gaiad tx staking delegate ${VALIDATOR} ${DELEGATION_AMOUNT}${DENOM} --yes --from ${KEY} --sequence ${ACCOUNT_SEQUENCE} --chain-id ${CHAIN_ID} --node ${NODE} ${GAS_FLAGS} --broadcast-mode async
+echo ${PASSPHRASE} | $GAIABIN tx staking delegate ${VALIDATOR} ${DELEGATION_AMOUNT}${DENOM} --yes --from ${KEY} --sequence ${ACCOUNT_SEQUENCE} --chain-id ${CHAIN_ID} --node ${NODE} ${GAS_FLAGS} --broadcast-mode async
 
 echo
 echo "Have a Cosmic day!"
