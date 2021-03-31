@@ -49,9 +49,10 @@ KEY_TYPE=$(echo ${KEY_STATUS} | jq -r ".type")
 
 # Get current account balance.
 ACCOUNT_ADDRESS=$(echo ${KEY_STATUS} | jq -r ".address")
-ACCOUNT_STATUS=$($GAIABIN q account ${ACCOUNT_ADDRESS} --node ${NODE} --output json)
+ACCOUNT_STATUS=$($GAIABIN q auth account ${ACCOUNT_ADDRESS} --node ${NODE} --output json)
 ACCOUNT_SEQUENCE=$(echo ${ACCOUNT_STATUS} | jq -r ".value.sequence")
-ACCOUNT_BALANCE=$(echo ${ACCOUNT_STATUS} | jq -r ".value.coins[] | select(.denom == \"${DENOM}\") | .amount" || true)
+ACCOUNT_BANK=$($GAIABIN q bank balances ${ACCOUNT_ADDRESS} --node ${NODE} --output json)
+ACCOUNT_BALANCE=$(echo ${ACCOUNT_BANK} | jq -r ".balances[] | select(.denom == \"${DENOM}\") | .amount" || true)
 if [ -z "${ACCOUNT_BALANCE}" ]
 then
     # Empty response means zero balance.
@@ -65,7 +66,7 @@ then
     # Empty response means zero balance.
     REWARDS_BALANCE="0"
 else
-    REWARDS_BALANCE=$(echo ${REWARDS_STATUS} | jq -r ".[] | select(.denom == \"${DENOM}\") | .amount" || true)
+    REWARDS_BALANCE=$(echo ${REWARDS_STATUS} | jq -r ".rewards[] | select(.denom == \"${DENOM}\") | .amount" || true)
     if [ -z "${REWARDS_BALANCE}" ] || [ "${REWARDS_BALANCE}" == "null" ]
     then
         # Empty response means zero balance.
