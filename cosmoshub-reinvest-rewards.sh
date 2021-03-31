@@ -43,7 +43,7 @@ then
 fi
 
 # Get information about key
-KEY_STATUS=$(echo ${PASSPHRASE} | gaiad keys show ${KEY} --output json)
+KEY_STATUS=$(echo ${PASSPHRASE} | $GAIABIN keys show ${KEY} --output json)
 KEY_TYPE=$(echo ${KEY_STATUS} | jq -r ".type")
 
 
