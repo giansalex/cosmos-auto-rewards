@@ -35,13 +35,6 @@ GAIABIN=gaiad
 ##############################################################################################################################################################
 
 
-# Auto-detect chain-id if not specified.
-if [ -z "${CHAIN_ID}" ]
-then
-  NODE_STATUS=$(curl -s --max-time 5 ${NODE}/status)
-  CHAIN_ID=$(echo ${NODE_STATUS} | jq -r ".result.node_info.network")
-fi
-
 # Get information about key
 KEY_STATUS=$(echo ${PASSPHRASE} | $GAIABIN keys show ${KEY} --output json)
 KEY_TYPE=$(echo ${KEY_STATUS} | jq -r ".type")
@@ -101,6 +94,13 @@ if [ "${DELEGATION_AMOUNT}" -eq 0 ]
 then
     echo "Nothing to delegate."
     exit 0
+fi
+
+# Auto-detect chain-id if not specified.
+if [ -z "${CHAIN_ID}" ]
+then
+  NODE_STATUS=$(curl -s --max-time 5 ${NODE}/status)
+  CHAIN_ID=$(echo ${NODE_STATUS} | jq -r ".result.node_info.network")
 fi
 
 # Display delegation information.
